@@ -46,7 +46,7 @@ void HDR<SampleType>::updateParams(void)
 }
 
 template <typename SampleType>
-void Demon<SampleType>::reset(float sampleRate)
+void HDR<SampleType>::reset(float sampleRate)
 {
     struct AudioDetectorParameters det_hi_params;
     struct AudioDetectorParameters det_lo_params;
@@ -75,7 +75,7 @@ void Demon<SampleType>::reset(float sampleRate)
 }
 
 template <typename SampleType>
-SampleType Demon<SampleType>::process(SampleType xn_hi, SampleType xn_lo)
+SampleType HDR<SampleType>::process(SampleType xn_hi, SampleType xn_lo)
 {
     SampleType yn_hi;
     SampleType yn_lo;

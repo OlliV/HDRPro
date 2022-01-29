@@ -84,24 +84,10 @@ tresult PLUGIN_API HDRProController::initialize (FUnknown* context)
     Unit* unit;
     Parameter *param;
 
-    // Demon 1
-    unitInfo.id = DemonProDemon0UnitId;
+    // HDR
+    unitInfo.id = HDRProUnitId;
     unitInfo.parentUnitId = kRootUnitId; // attached to the root unit
-    Steinberg::UString(unitInfo.name, USTRINGSIZE(unitInfo.name)).assign(USTRING("Demon 1"));
-    unitInfo.programListId = kNoProgramListId;
-    addUnit(new Unit(unitInfo));
-
-    // Demon 2
-    unitInfo.id = DemonProDemon1UnitId;
-    unitInfo.parentUnitId = kRootUnitId; // attached to the root unit
-    Steinberg::UString(unitInfo.name, USTRINGSIZE(unitInfo.name)).assign(USTRING("Demon 2"));
-    unitInfo.programListId = kNoProgramListId;
-    addUnit(new Unit(unitInfo));
-
-    // Demon 3
-    unitInfo.id = DemonProDemon2UnitId;
-    unitInfo.parentUnitId = kRootUnitId; // attached to the root unit
-    Steinberg::UString(unitInfo.name, USTRINGSIZE(unitInfo.name)).assign(USTRING("Demon 3"));
+    Steinberg::UString(unitInfo.name, USTRINGSIZE(unitInfo.name)).assign(USTRING("HDR"));
     unitInfo.programListId = kNoProgramListId;
     addUnit(new Unit(unitInfo));
 
@@ -109,111 +95,13 @@ tresult PLUGIN_API HDRProController::initialize (FUnknown* context)
     ParamValue defaultVal = 0;
     int32 flags = ParameterInfo::kCanAutomate | ParameterInfo::kIsBypass;
     param = parameters.addParameter(STR16("Bypass"), nullptr, stepCountToggle, defaultVal, flags, kBypassId);
-    param->setUnitID(DemonProRootUnitId);
+    param->setUnitID(HDRProRootUnitId);
 
-    // Demon 1: Gain
-    param = new GainParameter("Gain", ParameterInfo::kCanAutomate, kDemon0GainId, GAIN_MIN, GAIN_MAX);
-    param->setNormalized(DEMON0_GAIN_DEFAULT_N);
+    // Gain
+    param = new GainParameter("Gain", ParameterInfo::kCanAutomate, kHDRGainId, HDR_GAIN_MIN, HDR_GAIN_MAX);
+    param->setNormalized(HDR_GAIN_DEFAULT_N);
     param->setPrecision(2);
-    param->setUnitID(DemonProDemon0UnitId);
-    parameters.addParameter(param);
-
-    // Demon 1: Pitch
-    param = new Steinberg::Vst::mda::ScaledParameter(USTRING("Pitch"), USTRING("semitones"), 0, DEMON0_PITCH_DEFAULT_N, ParameterInfo::kCanAutomate, kDemon0PitchId, DEMON_PITCH_MIN, DEMON_PITCH_MAX);
-    param->setNormalized(DEMON0_PITCH_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon0UnitId);
-    parameters.addParameter(param);
-
-    // Demon 1: Boost Gain
-    param = new GainParameter("Boost Gain", ParameterInfo::kCanAutomate, kDemon0BoostGainId, GAIN_MIN, GAIN_MAX);
-    param->setNormalized(DEMON0_BOOST_GAIN_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon0UnitId);
-    parameters.addParameter(param);
-
-    // Demon 1: Boost fc
-    param = new Steinberg::Vst::mda::ScaledParameter(USTRING("Boost Freq"), USTRING("Hz"), 0, DEMON0_BOOST_FC_DEFAULT_N, ParameterInfo::kCanAutomate, kDemon0BoostFcId, DEMON_BOOST_FC_MIN, DEMON_BOOST_FC_MAX);
-    param->setNormalized(DEMON0_BOOST_FC_DEFAULT_N);
-    param->setPrecision(0);
-    param->setUnitID(DemonProDemon0UnitId);
-    parameters.addParameter(param);
-
-    // Demon 1: Blend
-    param = new Steinberg::Vst::mda::ScaledParameter(USTRING("Blend"), USTRING(":1"), 0.0f, 1.0f, ParameterInfo::kCanAutomate, kDemon0BlendId);
-    param->setNormalized(DEMON0_BLEND_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon0UnitId);
-    parameters.addParameter(param);
-
-    // Demon 2: Gain
-    param = new GainParameter("Gain", ParameterInfo::kCanAutomate, kDemon1GainId, GAIN_MIN, GAIN_MAX);
-    param->setNormalized(DEMON1_GAIN_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon1UnitId);
-    parameters.addParameter(param);
-
-    // Demon 2: Pitch
-    param = new Steinberg::Vst::mda::ScaledParameter(USTRING("Pitch"), USTRING("semitones"), 0, DEMON1_PITCH_DEFAULT_N, ParameterInfo::kCanAutomate, kDemon1PitchId, DEMON_PITCH_MIN, DEMON_PITCH_MAX);
-    param->setNormalized(DEMON1_PITCH_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon1UnitId);
-    parameters.addParameter(param);
-
-    // Demon 2: Boost Gain
-    param = new GainParameter("Boost Gain", ParameterInfo::kCanAutomate, kDemon1BoostGainId, GAIN_MIN, GAIN_MAX);
-    param->setNormalized(DEMON1_BOOST_GAIN_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon1UnitId);
-    parameters.addParameter(param);
-
-    // Demon 2: Boost fc
-    param = new Steinberg::Vst::mda::ScaledParameter(USTRING("Boost Freq"), USTRING("Hz"), 0, DEMON1_BOOST_FC_DEFAULT_N, ParameterInfo::kCanAutomate, kDemon1BoostFcId, DEMON_BOOST_FC_MIN, DEMON_BOOST_FC_MAX);
-    param->setNormalized(DEMON1_BOOST_FC_DEFAULT_N);
-    param->setPrecision(0);
-    param->setUnitID(DemonProDemon1UnitId);
-    parameters.addParameter(param);
-
-    // Demon 2: Blend
-    param = new Steinberg::Vst::mda::ScaledParameter(USTRING("Blend"), USTRING(":1"), 0.0f, 1.0f, ParameterInfo::kCanAutomate, kDemon1BlendId);
-    param->setNormalized(DEMON1_BLEND_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon1UnitId);
-    parameters.addParameter(param);
-
-    // Demon 3: Gain
-    param = new GainParameter("Gain", ParameterInfo::kCanAutomate, kDemon2GainId, GAIN_MIN, GAIN_MAX);
-    param->setNormalized(DEMON2_GAIN_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon2UnitId);
-    parameters.addParameter(param);
-
-    // Demon 3: Pitch
-    param = new Steinberg::Vst::mda::ScaledParameter(USTRING("Pitch"), USTRING("semitones"), 0, DEMON2_PITCH_DEFAULT_N, ParameterInfo::kCanAutomate, kDemon2PitchId, DEMON_PITCH_MIN, DEMON_PITCH_MAX);
-    param->setNormalized(DEMON2_PITCH_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon2UnitId);
-    parameters.addParameter(param);
-
-    // Demon 3: Boost Gain
-    param = new GainParameter("Boost Gain", ParameterInfo::kCanAutomate, kDemon2BoostGainId, GAIN_MIN, GAIN_MAX);
-    param->setNormalized(DEMON2_BOOST_GAIN_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon2UnitId);
-    parameters.addParameter(param);
-
-    // Demon 3: Boost fc
-    param = new Steinberg::Vst::mda::ScaledParameter(USTRING("Boost Freq"), USTRING("Hz"), 0, DEMON1_BOOST_FC_DEFAULT_N, ParameterInfo::kCanAutomate, kDemon2BoostFcId, DEMON_BOOST_FC_MIN, DEMON_BOOST_FC_MAX);
-    param->setNormalized(DEMON2_BOOST_FC_DEFAULT_N);
-    param->setPrecision(0);
-    param->setUnitID(DemonProDemon2UnitId);
-    parameters.addParameter(param);
-
-    // Demon 3: Blend
-    param = new Steinberg::Vst::mda::ScaledParameter(USTRING("Blend"), USTRING(":1"), 0.0f, 1.0f, ParameterInfo::kCanAutomate, kDemon2BlendId);
-    param->setNormalized(DEMON2_BLEND_DEFAULT_N);
-    param->setPrecision(2);
-    param->setUnitID(DemonProDemon2UnitId);
+    param->setUnitID(HDRProUnitId);
     parameters.addParameter(param);
 
 	return result;
@@ -232,26 +120,21 @@ tresult PLUGIN_API HDRProController::setComponentState (IBStream* state)
     if (!state)
         return kResultFalse;
 
-    IBStreamer streamer (state, kLittleEndian);
-    int32 savedBypass;
+    IBStreamer streamer(state, kLittleEndian);
 
+    int32 savedBypass;
     if (!streamer.readInt32(savedBypass)) {
         return kResultFalse;
     }
 
     setParamNormalized(kBypassId, savedBypass ? 1 : 0);
 
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 5; j++) {
-            float v;
+   float gain;
+   if (!streamer.readFloat(gain)) {
+       return kResultFalse;
+   }
 
-            if (!streamer.readFloat(v)) {
-                return kResultFalse;
-            }
-
-            setParamNormalized(kDemon0GainId + i * 5 + j, v);
-        }
-    }
+   setParamNormalized(kHDRGainId, gain);
 
 	return kResultOk;
 }

@@ -12,9 +12,7 @@ using namespace Steinberg::Vst;
 
 enum HDRProUnitId {
     HDRProRootUnitId = 0,
-    HDRProDemon0UnitId,
-    HDRProDemon1UnitId,
-    HDRProDemon2UnitId,
+    HDRProHDRUnitId,
     HDRProNrUnits
 };
 

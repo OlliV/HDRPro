@@ -31,45 +31,13 @@ tresult PLUGIN_API HDRProProcessor::initialize (FUnknown* context)
         return result;
     }
 
-    demon32[0].gain = DEMON0_GAIN_DEFAULT_N;
-    demon32[0].pitch = DEMON0_PITCH_DEFAULT_N;
-    demon32[0].boostGain = DEMON0_BOOST_GAIN_DEFAULT_N;
-    demon32[0].boostFc = DEMON0_BOOST_FC_DEFAULT_N;
-    demon32[0].blend = DEMON0_BLEND_DEFAULT_N;
-    demon32[0].updateParams();
-    demon32[1].gain = DEMON1_GAIN_DEFAULT_N;
-    demon32[1].pitch = DEMON1_PITCH_DEFAULT_N;
-    demon32[1].boostGain = DEMON1_BOOST_GAIN_DEFAULT_N;
-    demon32[1].boostFc = DEMON1_BOOST_FC_DEFAULT_N;
-    demon32[1].blend = DEMON1_BLEND_DEFAULT_N;
-    demon32[1].updateParams();
-    demon32[2].gain = DEMON2_GAIN_DEFAULT_N;
-    demon32[2].pitch = DEMON2_PITCH_DEFAULT_N;
-    demon32[2].boostGain = DEMON2_BOOST_GAIN_DEFAULT_N;
-    demon32[2].boostFc = DEMON2_BOOST_FC_DEFAULT_N;
-    demon32[2].blend = DEMON2_BLEND_DEFAULT_N;
-    demon32[2].updateParams();
-    demon64[0].gain = DEMON0_GAIN_DEFAULT_N;
-    demon64[0].pitch = DEMON0_PITCH_DEFAULT_N;
-    demon64[0].boostGain = DEMON0_BOOST_GAIN_DEFAULT_N;
-    demon64[0].boostFc = DEMON0_BOOST_FC_DEFAULT_N;
-    demon64[0].blend = DEMON0_BLEND_DEFAULT_N;
-    demon64[0].updateParams();
-    demon64[1].gain = DEMON1_GAIN_DEFAULT_N;
-    demon64[1].pitch = DEMON1_PITCH_DEFAULT_N;
-    demon64[1].boostGain = DEMON1_BOOST_GAIN_DEFAULT_N;
-    demon64[1].boostFc = DEMON1_BOOST_FC_DEFAULT_N;
-    demon64[1].blend = DEMON1_BLEND_DEFAULT_N;
-    demon64[1].updateParams();
-    demon64[2].gain = DEMON2_GAIN_DEFAULT_N;
-    demon64[2].pitch = DEMON2_PITCH_DEFAULT_N;
-    demon64[2].boostGain = DEMON2_BOOST_GAIN_DEFAULT_N;
-    demon64[2].boostFc = DEMON2_BOOST_FC_DEFAULT_N;
-    demon64[2].blend = DEMON2_BLEND_DEFAULT_N;
-    demon64[2].updateParams();
+    hdr32.gain = HDR_GAIN_DEFAULT_N;
+    hdr32.updateParams();
+    hdr64.gain = HDR_GAIN_DEFAULT_N;
+    hdr64.updateParams();
 
-    addAudioInput(STR16("Mono In"), Steinberg::Vst::SpeakerArr::kMono);
-    addAudioOutput(STR16("Mono Out"), Steinberg::Vst::SpeakerArr::kMono);
+    addAudioInput(STR16("Stereo In"), Steinberg::Vst::SpeakerArr::kStereo);
+    addAudioOutput(STR16("Stereo Out"), Steinberg::Vst::SpeakerArr::kStereo);
     addEventInput(STR16("Event In"), 1);
 
     return kResultOk;
@@ -86,12 +54,10 @@ tresult PLUGIN_API HDRProProcessor::setActive (TBool state)
     if (state) {
         float sampleRate = (float)this->processSetup.sampleRate;
 
-        for (int i = 3; i < 3; i++) {
-            demon32[i].reset(sampleRate);
-            demon32[i].updateParams();
-            demon64[i].reset(sampleRate);
-            demon64[i].updateParams();
-        }
+        hdr32.reset(sampleRate);
+        hdr32.updateParams();
+        hdr64.reset(sampleRate);
+        hdr64.updateParams();
     }
 
 	return AudioEffect::setActive(state);
@@ -116,108 +82,18 @@ void HDRProProcessor::handleParamChanges(IParameterChanges* paramChanges)
                     }
                     break;
 
-                case kDemon0GainId:
+                case kHDRGainId:
                     if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[0].gain = value;
-                        demon64[0].gain = value;
-                    }
-                    break;
-                case kDemon1GainId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[1].gain = value;
-                        demon64[1].gain = value;
-                    }
-                    break;
-                case kDemon2GainId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[2].gain = value;
-                        demon64[2].gain = value;
-                    }
-                    break;
-
-                case kDemon0PitchId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[0].pitch = value;
-                        demon64[0].pitch = value;
-                    }
-                    break;
-                case kDemon1PitchId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[1].pitch = value;
-                        demon64[1].pitch = value;
-                    }
-                    break;
-                case kDemon2PitchId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[2].pitch = value;
-                        demon64[2].pitch = value;
-                    }
-                    break;
-
-                case kDemon0BoostGainId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[0].boostGain = value;
-                        demon64[0].boostGain = value;
-                    }
-                    break;
-                case kDemon1BoostGainId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[1].boostGain = value;
-                        demon64[1].boostGain = value;
-                    }
-                    break;
-                case kDemon2BoostGainId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[2].boostGain = value;
-                        demon64[2].boostGain = value;
-                    }
-                    break;
-
-                case kDemon0BoostFcId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[0].boostFc = value;
-                        demon64[0].boostFc = value;
-                    }
-                    break;
-                case kDemon1BoostFcId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[1].boostFc = value;
-                        demon64[1].boostFc = value;
-                    }
-                    break;
-                case kDemon2BoostFcId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[2].boostFc = value;
-                        demon64[2].boostFc = value;
-                    }
-                    break;
-
-                case kDemon0BlendId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[0].blend = value;
-                        demon64[0].blend = value;
-                    }
-                    break;
-                case kDemon1BlendId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[1].blend = value;
-                        demon64[1].blend = value;
-                    }
-                    break;
-                case kDemon2BlendId:
-                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        demon32[2].blend = value;
-                        demon64[2].blend = value;
+                        hdr32[0].gain = value;
+                        hdr64[0].gain = value;
                     }
                     break;
             }
         }
 
         if (numParamsChanged) {
-            for (int i = 0; i < 3; i++) {
-                demon32[i].updateParams();
-                demon64[i].updateParams();
-            }
+            hdr32.updateParams();
+            hdr64.updateParams();
         }
     }
 }
@@ -298,9 +174,7 @@ tresult PLUGIN_API HDRProProcessor::canProcessSampleSize (int32 symbolicSampleSi
 tresult PLUGIN_API HDRProProcessor::setBusArrangements (Steinberg::Vst::SpeakerArrangement* inputs, int32 numIns,
                                                         Steinberg::Vst::SpeakerArrangement* outputs, int32 numOuts)
 {
-    if (numIns != 1 || numOuts != 1 ||
-        Steinberg::Vst::SpeakerArr::getChannelCount(inputs[0]) != 1 ||
-        Steinberg::Vst::SpeakerArr::getChannelCount(outputs[0]) != 1) {
+    if (numIns != 1 || numOuts != 1) {
         return kResultFalse;
     }
 
@@ -309,19 +183,28 @@ tresult PLUGIN_API HDRProProcessor::setBusArrangements (Steinberg::Vst::SpeakerA
         return kResultFalse;
     }
 
-    if (bus->getArrangement() != Steinberg::Vst::SpeakerArr::kMono) {
+    if (Steinberg::Vst::SpeakerArr::getChannelCount(inputs[0]) == 2 &&
+        Steinberg::Vst::SpeakerArr::getChannelCount(outputs[0]) == 2) {
         getAudioInput(0)->setArrangement(inputs[0]);
-        getAudioInput(0)->setName(STR16("Mono In"));
+        getAudioInput(0)->setName(STR16("Stereo In"));
         getAudioOutput(0)->setArrangement(outputs[0]);
-        getAudioOutput(0)->setName(STR16("Mono Out"));
+        getAudioOutput(0)->setName(STR16("Stereo Out"));
+        return kResultTrue;
     }
 
-    return kResultOk;
+    if (bus->getArrangement() != Steinberg::Vst::SpeakerArr::kStereo) {
+        getAudioInput(0)->setArrangement(Steinberg::Vst::SpeakerArr::kStereo);
+        getAudioInput(0)->setName(STR16("Stereo In"));
+        getAudioOutput(0)->setArrangement(Steinberg::Vst::SpeakerArr::kStereo);
+        getAudioOutput(0)->setName(STR16("Stereo Out"));
+        return kResultFalse;
+    }
+
+    return kResultFalse;
 }
 
 tresult PLUGIN_API HDRProProcessor::setState (IBStream* state)
 {
-    // called when we load a preset or project, the model has to be reloaded
     if (!state) {
         kResultFalse;
     }
@@ -329,64 +212,31 @@ tresult PLUGIN_API HDRProProcessor::setState (IBStream* state)
 	IBStreamer streamer(state, kLittleEndian);
 
     int32 savedBypass = 0;
-
     if (!streamer.readInt32(savedBypass)) {
             return kResultFalse;
     }
 
     bBypass = savedBypass > 0;
 
-    for (int i = 0; i < 3; i++) {
-        float gain;
-        float pitch;
-        float boostGain;
-        float boostFc;
-        float blend;
-
-        if (!streamer.readFloat(gain) ||
-            !streamer.readFloat(pitch) ||
-            !streamer.readFloat(boostGain) ||
-            !streamer.readFloat(boostFc) ||
-            !streamer.readFloat(blend)) {
-            return kResultFalse;
-        }
-
-        demon32[i].gain = gain;
-        demon32[i].pitch = pitch;
-        demon32[i].boostGain = boostGain;
-        demon32[i].boostFc = boostFc;
-        demon32[i].blend = blend;
-        demon32[i].updateParams();
-
-        demon64[i].gain = gain;
-        demon64[i].pitch = pitch;
-        demon64[i].boostGain = boostGain;
-        demon64[i].boostFc = boostFc;
-        demon64[i].blend = blend;
-        demon64[i].updateParams();
+    float gain;
+    if (!streamer.readFloat(gain)) {
+        return kResultFalse;
     }
+
+    hdr32.gain = gain;
+    hdr32.updateParams();
+    hdr64.gain = gain;
+    hdr64.updateParams();
 
 	return kResultOk;
 }
 
 tresult PLUGIN_API HDRProProcessor::getState (IBStream* state)
 {
-	// here we need to save the model
-	IBStreamer streamer (state, kLittleEndian);
+	IBStreamer streamer(state, kLittleEndian);
 
-    /*
-     * YOLO, we just write the state in the right order here
-     * and hope it goes well.
-     */
     streamer.writeInt32(bBypass ? 1 : 0);
-
-    for (int i = 0; i < 3; i++) {
-        streamer.writeFloat(demon32[i].gain);
-        streamer.writeFloat(demon32[i].pitch);
-        streamer.writeFloat(demon32[i].boostGain);
-        streamer.writeFloat(demon32[i].boostFc);
-        streamer.writeFloat(demon32[i].blend);
-    }
+    streamer.writeFloat(hdr32.gain);
 
 	return kResultOk;
 }
