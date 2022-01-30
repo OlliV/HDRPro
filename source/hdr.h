@@ -112,7 +112,6 @@ SampleType HDR<SampleType>::process(SampleType xn_hi, SampleType xn_lo)
 
     hi_level = det_hi.processAudioSample(xn_hi);
     lo_level = det_lo.processAudioSample(xn_lo);
-    //printf("hi_level: %f %f\n", (double)xn_hi, (double)hi_level);
 
     if (proc.sel_lo) {
         if (lo_level < cooked.lo_min) {
