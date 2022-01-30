@@ -84,8 +84,20 @@ void HDRProProcessor::handleParamChanges(IParameterChanges* paramChanges)
 
                 case kHDRGainId:
                     if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-                        hdr32[0].gain = value;
-                        hdr64[0].gain = value;
+                        hdr32.gain = value;
+                        hdr64.gain = value;
+                    }
+                    break;
+                case kHDRHiMaxId:
+                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
+                        hdr32.hi_max = value;
+                        hdr64.hi_max = value;
+                    }
+                    break;
+                case kHDRLoMinId:
+                    if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
+                        hdr32.lo_min = value;
+                        hdr64.lo_min = value;
                     }
                     break;
             }
@@ -112,45 +124,74 @@ tresult PLUGIN_API HDRProProcessor::process (Vst::ProcessData& data)
      * Processing
      */
 
-    if (data.numInputs != 2 || data.numOutputs != 1) {
+    if (data.numInputs != 1 || data.numOutputs != 1) {
         return kResultOk;
     }
 
-    void* in = getChannelBuffersPointer(processSetup, data.inputs[0]);
-    void* out = getChannelBuffersPointer(processSetup, data.outputs[0])[0];
+    void** in = getChannelBuffersPointer(processSetup, data.inputs[0]);
+    void** out = getChannelBuffersPointer(processSetup, data.outputs[0]);
     const int nrSamples = data.numSamples;
     const size_t sampleFramesSize = getSampleFramesSizeInBytes(processSetup, nrSamples);
 
     if (data.inputs[0].silenceFlags) {
         data.outputs[0].silenceFlags = data.inputs[0].silenceFlags;
 
-        if (in != out) {
-            memset(out, 0, sampleFramesSize);
+        memset(out[0], 0, sampleFramesSize);
+        memset(out[1], 0, sampleFramesSize);
+
+        return kResultOk;
+    }
+
+    // Normally the output is not silenced
+    data.outputs[0].silenceFlags = 0;
+
+    if (bBypass) {
+        memmove(out[0], in[0], sampleFramesSize);
+        memmove(out[1], in[1], sampleFramesSize);
+
+        for (int i = 0; i < nrSamples; i++) {
+            if (data.symbolicSampleSize == kSample32) {
+                hdr32.process(0.0, 0.0);
+            } else {
+                hdr64.process(0.0, 0.0);
+            }
+        }
+
+        return kResultOk;
+    }
+
+    // TODO Remove
+        memmove(in[1], in[0], sampleFramesSize);
+    if (data.symbolicSampleSize == kSample32) {
+        Sample32 *hi = ((Sample32**)in)[0];
+        Sample32 *lo = ((Sample32**)in)[1];
+        Sample32 *l_out = ((Sample32 **)out)[0];
+
+        for (int i = 0; i < nrSamples; i++) {
+            l_out[i] = hdr32.process(hi[i], lo[i]);
         }
     } else {
-        // Normally the output is not silenced
-        data.outputs[0].silenceFlags = 0;
+        Sample64 *hi = ((Sample64**)in)[0];
+        Sample64 *lo = ((Sample64**)in)[1];
+        Sample64 *l_out = ((Sample64**)out)[0];
 
-        if (!bBypass) {
-            memset(out, 0, sampleFramesSize);
-        } else if (in != out) {
-            memmove(out, in[0], sampleFramesSize);
+        for (int i = 0; i < nrSamples; i++) {
+            l_out[i] = hdr64.process(hi[i], lo[i]);
         }
+    }
 
-        if (data.symbolicSampleSize == kSample32) {
-            Sample32 *hi = ((Sample32**)in)[0];
-            Sample32 *lo = ((Sample32**)in)[1];
+    // Copy L -> R
+    memcpy(out[1], out[0], sampleFramesSize);
 
-            for (size_t i = 0; i < nrSamples; i++) {
-                ((Sample32*)out)[i] = hdr32.process(hi[i], lo[i]);
-            }
-        } else {
-            Sample64 *hi = ((Sample64**)in)[0];
-            Sample64 *lo = ((Sample64**)in)[1];
+    IParameterChanges* outParamChanges = data.outputParameterChanges;
+    if (outParamChanges) {
+        const float sel_lo = ((data.symbolicSampleSize == kSample32) ? hdr32.get_sel_lo() : hdr64.get_sel_lo()) ? 1.0 : 0.0;
+        int32 index = 0;
+        IParamValueQueue* paramQueue;
 
-            for (size_t i = 0; i < nrSamples; i++) {
-                ((Sample64*)out)[i] = hdr64.process(hi[i], lo[i]);
-            }
+        paramQueue = outParamChanges->addParameterData(kHDRSelLoId, index);
+        if (paramQueue) {
+            paramQueue->addPoint(0, sel_lo, index);
         }
     }
 
@@ -219,13 +260,21 @@ tresult PLUGIN_API HDRProProcessor::setState (IBStream* state)
     bBypass = savedBypass > 0;
 
     float gain;
-    if (!streamer.readFloat(gain)) {
+    float hi_max;
+    float lo_min;
+    if (!streamer.readFloat(gain) ||
+        !streamer.readFloat(hi_max) ||
+        !streamer.readFloat(lo_min)) {
         return kResultFalse;
     }
 
     hdr32.gain = gain;
+    hdr32.hi_max = hi_max;
+    hdr32.lo_min = lo_min;
     hdr32.updateParams();
     hdr64.gain = gain;
+    hdr64.hi_max = hi_max;
+    hdr64.lo_min = lo_min;
     hdr64.updateParams();
 
 	return kResultOk;
@@ -237,6 +286,8 @@ tresult PLUGIN_API HDRProProcessor::getState (IBStream* state)
 
     streamer.writeInt32(bBypass ? 1 : 0);
     streamer.writeFloat(hdr32.gain);
+    streamer.writeFloat(hdr32.hi_max);
+    streamer.writeFloat(hdr32.lo_min);
 
 	return kResultOk;
 }

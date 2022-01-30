@@ -7,7 +7,7 @@ private:
     const SampleType a = 0.95;
     SampleType wn;
 public:
-    DCblock()
+    DCBlock()
     {
         wn = 0.0;
     }

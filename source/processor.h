@@ -46,7 +46,7 @@ public:
                                                       Steinberg::int32 numOuts) SMTG_OVERRIDE;
     Steinberg::uint32 PLUGIN_API getLatencySamples() override
     {
-        return 0;
+        return hdr32.get_nlookahead();
     }
 	Steinberg::tresult PLUGIN_API process (Steinberg::Vst::ProcessData& data) SMTG_OVERRIDE;
 

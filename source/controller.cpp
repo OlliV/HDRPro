@@ -85,7 +85,7 @@ tresult PLUGIN_API HDRProController::initialize (FUnknown* context)
     Parameter *param;
 
     // HDR
-    unitInfo.id = HDRProUnitId;
+    unitInfo.id = HDRProHDRUnitId;
     unitInfo.parentUnitId = kRootUnitId; // attached to the root unit
     Steinberg::UString(unitInfo.name, USTRINGSIZE(unitInfo.name)).assign(USTRING("HDR"));
     unitInfo.programListId = kNoProgramListId;
@@ -98,11 +98,28 @@ tresult PLUGIN_API HDRProController::initialize (FUnknown* context)
     param->setUnitID(HDRProRootUnitId);
 
     // Gain
-    param = new GainParameter("Gain", ParameterInfo::kCanAutomate, kHDRGainId, HDR_GAIN_MIN, HDR_GAIN_MAX);
+    param = new GainParameter("Gain", ParameterInfo::kNoFlags, kHDRGainId, HDR_GAIN_MIN, HDR_GAIN_MAX);
     param->setNormalized(HDR_GAIN_DEFAULT_N);
     param->setPrecision(2);
-    param->setUnitID(HDRProUnitId);
+    param->setUnitID(HDRProHDRUnitId);
     parameters.addParameter(param);
+
+    // Hi_max
+    param = new GainParameter("Hi max", ParameterInfo::kNoFlags, kHDRHiMaxId, HDR_24B_FS_MIN, HDR_24B_FS_MAX);
+    param->setNormalized(HDR_HI_MAX_DEFAULT_N);
+    param->setPrecision(2);
+    param->setUnitID(HDRProHDRUnitId);
+    parameters.addParameter(param);
+
+    // Lo_min
+    param = new GainParameter("Lo min", ParameterInfo::kNoFlags, kHDRLoMinId, HDR_24B_FS_MIN, HDR_24B_FS_MAX);
+    param->setNormalized(HDR_LO_MIN_DEFAULT_N);
+    param->setPrecision(2);
+    param->setUnitID(HDRProHDRUnitId);
+    parameters.addParameter(param);
+
+    // Sel_lo
+    parameters.addParameter(STR16("SelLo"), nullptr, 0, 0, ParameterInfo::kIsReadOnly, kHDRSelLoId);
 
 	return result;
 }
